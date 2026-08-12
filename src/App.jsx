@@ -1,19 +1,29 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
-import Navbar from './common/navbar'
-import Trip from './component/trip'
-function App() {
-  const [count, setCount] = useState(0)
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+import Navbar from "./common/navbar";
+import Trip from "./component/trip";
+import TripDetails from "./pages/TripDetails";
+
+function App() {
   return (
-    <>
+    <BrowserRouter>
+      {/* Navbar stays constant on every page */}
       <Navbar />
-      <Trip />
-    </>
-  )
+
+      <main>
+        <Routes>
+          {/* Home */}
+          <Route path="/" element={<Trip />} />
+
+          {/* Trip Details */}
+          <Route
+            path="/details/:slug"
+            element={<TripDetails />}
+          />
+        </Routes>
+      </main>
+    </BrowserRouter>
+  );
 }
 
-export default App
+export default App;
