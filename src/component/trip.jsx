@@ -292,7 +292,7 @@ const TripCard = ({ trip }) => {
           <span className="text-lg text-[#8C7343] font-18px ">{trip.date}</span>
         </div>
         {/* BUTTONS */}
-        <div className="mt-auto flex gap-2">
+        <div className=" flex gap-2">
           <Link
             to={`/details/${trip.slug}`}
             className="flex-1 bg-primary-500 py-2 text-center text-[14px] font-medium text-white transition hover:bg-primary-600"
@@ -302,7 +302,7 @@ const TripCard = ({ trip }) => {
 
           <button
             type="button"
-            className="flex-1 bg-primary-500 py-2 text-[14px] font-medium text-white transition hover:bg-primary-600"
+            className="flex-1 bg-primary-500 py-2 text-ceter text-[14px] font-medium text-white transition hover:bg-primary-600"
           >
             Book Now
           </button>

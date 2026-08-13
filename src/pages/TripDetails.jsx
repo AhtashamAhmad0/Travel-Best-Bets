@@ -208,6 +208,10 @@ const normalizeRelatedPackage = (
    API CONTENT RENDERER
 ========================================================= */
 
+/* =========================================================
+   API CONTENT RENDERER
+========================================================= */
+
 const ApiContent = ({ type, value }) => {
   if (value === undefined || value === null || value === "") return null;
 
@@ -260,13 +264,45 @@ const ApiContent = ({ type, value }) => {
     );
   }
 
-  // EDITOR / default — HTML string
+  // EDITOR / default — raw HTML string from the CMS (paragraphs, h5s,
+  // <ul>/<li> inclusion lists, and inline-styled <table>s with their
+  // own border-color / background-color per cell).
   const cleanValue = String(value);
 
   if (/<[a-z][\s\S]*>/i.test(cleanValue)) {
     return (
       <div
-        className="prose max-w-none prose-headings:text-[#111] prose-p:text-gray-700 prose-li:text-gray-700 prose-a:text-[#006f5d] prose-a:underline"
+        className="
+          anchor editor-output space-y-4 max-w-none
+          text-xl text-black
+
+          /* headings */
+          [&_h1]:text-black [&_h2]:text-black [&_h3]:text-black
+          [&_h4]:text-black [&_h5]:text-black [&_h5]:mt-4 [&_h5]:font-semibold
+          [&_h6]:text-black
+
+          /* paragraphs */
+          [&_p]:text-xl [&_p]:text-black
+
+          /* lists — force bullets/numbers since Tailwind preflight
+             strips list-style by default */
+          [&_ul]:list-disc [&_ul]:pl-6 [&_ul]:space-y-1 [&_ul]:my-2
+          [&_ol]:list-decimal [&_ol]:pl-6 [&_ol]:space-y-1 [&_ol]:my-2
+          [&_li]:text-xl [&_li]:text-black [&_li]:list-item
+
+          /* nested lists inside li */
+          [&_li_ul]:list-[circle] [&_li_ul]:mt-1
+          [&_li_ol]:list-[lower-alpha] [&_li_ol]:mt-1
+
+          /* links */
+          [&_a]:text-primary-500 [&_a]:underline
+
+          /* tables — inline border-color/background-color from the
+             CMS wins per-cell, we just supply border-style/width */
+          [&_table]:border-collapse [&_table]:w-full [&_table]:my-4
+          [&_td]:border [&_td]:border-gray-300 [&_td]:p-2 [&_td]:align-top
+          [&_th]:border [&_th]:border-gray-300 [&_th]:p-2 [&_th]:text-left
+        "
         dangerouslySetInnerHTML={{ __html: cleanValue }}
       />
     );
@@ -806,74 +842,31 @@ const TripDetails = () => {
       ================================================= */}
 
       <section className="border-b border-gray-200 bg-white">
-        <div
-          className="
-            mx-auto
-            flex
-            max-w-7xl
-            flex-col
-            gap-7
-            px-5
-            py-7
-            lg:flex-row
-            lg:items-center
-            lg:justify-between
-            lg:px-8
-          "
-        >
-          {/* TITLE */}
-
-          <div>
-            <h1
-              className="
-                text-3xl
-                font-bold
-                leading-tight
-                text-[#111]
-              "
-            >
+        <div className="mx-auto flex max-w-[1193px] flex-col items-start justify-between gap-2 py-5 px-4 md:flex-row md:items-center">
+          {/* TITLE + DATE */}
+          <div className="flex flex-col gap-2">
+            <h1 className="flex max-w-3xl items-start gap-2 text-4xl font-bold text-black">
               {title}
             </h1>
-
-            <p className="mt-2 text-[#9a7c46]">
-              {date}
-            </p>
+            <span className="text-xl text-secondary-500">{date}</span>
           </div>
 
-          {/* PRICE */}
-
-          <div className="flex items-center gap-7">
-            <div>
-              <p className="text-xs text-gray-500">
-                From
-              </p>
-
-              <p className="text-4xl font-bold text-[#111]">
-                ${price}
-              </p>
-
-              {tax && (
-                <p className="text-sm text-gray-500">
-                  +${tax} tax
-                </p>
-              )}
+          {/* PRICE + CTA */}
+          <div className="flex flex-col">
+            <p className="text-sm text-black">From</p>
+            <div className="flex items-end gap-2">
+              <span className="text-5xl font-bold text-black">${price}</span>
+              {tax && <span className="text-2xl text-black">+${tax} tax</span>}
             </div>
 
-            <button
-              type="button"
-              className="
-                hidden
-                bg-[#006f5d]
-                px-5
-                py-3
-                text-sm
-                font-medium
-                text-white
-                lg:block
-              "
-            >
-              Book Now
-            </button>
+            <div className="mt-4 md:mt-0">
+              <button
+                type="button"
+                class="contained-button mt-2 bg-primary-500 px-6 py-2 font-medium text-white hover:bg-primary-600"
+              >
+                Request a Quote
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -887,54 +880,31 @@ const TripDetails = () => {
 
       {icons.length > 0 && (
         <section className="border-b border-gray-200 bg-white">
-          <div
-            className="
-              mx-auto
-              flex
-              max-w-7xl
-              items-center
-              gap-8
-              px-5
-              py-6
-              lg:px-8
-            "
-          >
-            {icons
-              .slice(0, 6)
-              .map((item, index) => {
-                const iconUrl =
-                  getIconUrl(item?.icon);
+          <div className="mx-auto flex max-w-[1193px] flex-nowrap justify-start gap-12 overflow-auto py-9 px-4">
+            {icons.slice(0, 6).map((item, index) => {
+              const iconUrl = getIconUrl(item?.icon);
+              if (!iconUrl) return null;
 
-                if (!iconUrl) return null;
-
-                return (
-                  <div
-                    key={`${item.icon}-${index}`}
-                    className="
-                      flex
-                      h-12
-                      w-12
-                      items-center
-                      justify-center
-                    "
-                  >
-                    <img
-                      src={iconUrl}
-                      alt=""
-                      aria-hidden="true"
-                      className="
-                        h-10
-                        w-10
-                        object-contain
-                      "
-                      onError={(event) => {
-                        event.currentTarget.style.display =
-                          "none";
-                      }}
-                    />
-                  </div>
-                );
-              })}
+              return (
+                <div
+                  key={`${item.icon}-${index}`}
+                  className="flex flex-col items-center"
+                >
+                  <img
+                    src={iconUrl}
+                    alt=""
+                    aria-hidden="true"
+                    className="h-12 w-12 object-contain"
+                    onError={(event) => {
+                      event.currentTarget.style.display = "none";
+                    }}
+                  />
+                  <span className="mt-1 text-base text-black">
+                    {[item.text1, item.text2].filter(Boolean).join(" ")}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </section>
       )}
@@ -944,63 +914,27 @@ const TripDetails = () => {
       ================================================= */}
 
       {tabs.length > 0 && (
-        <section
-          className="
-            sticky
-            top-0
-            z-30
-            bg-[#9a7c46]
-            shadow-sm
-          "
-        >
-          <div
-            className="
-              mx-auto
-              flex
-              max-w-7xl
-              justify-center
-              overflow-x-auto
-            "
-          >
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() =>
-                  setActiveTab(tab.id)
-                }
-                className={`
-                  relative
-                  whitespace-nowrap
-                  px-6
-                  py-4
-                  text-sm
-                  font-medium
-                  text-white
-                  transition
-                  ${activeTab === tab.id
-                    ? "bg-black/5"
-                    : "hover:bg-black/5"
-                  }
-                `}
-              >
-                {tab.label}
+        <section className="sticky top-0 z-30 bg-secondary-500 shadow-sm">
+          <div className="mx-auto flex w-full max-w-[1193px] items-center gap-4 px-3">
+            <div className="hide-scrollbar mx-auto flex flex-nowrap gap-8 overflow-x-auto px-4 py-5 text-base">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`
+              relative min-w-max cursor-pointer text-lg font-bold capitalize transition
+              ${activeTab === tab.id ? "text-white" : "text-white/70 hover:text-white"}
+            `}
+                >
+                  {tab.label}
 
-                {activeTab === tab.id && (
-                  <span
-                    className="
-                      absolute
-                      bottom-0
-                      left-1/2
-                      h-0.5
-                      w-8
-                      -translate-x-1/2
-                      bg-white
-                    "
-                  />
-                )}
-              </button>
-            ))}
+                  {activeTab === tab.id && (
+                    <span className="absolute -bottom-2 left-0 h-0.5 w-full bg-white" />
+                  )}
+                </button>
+              ))}
+            </div>
           </div>
         </section>
       )}
@@ -1029,36 +963,34 @@ const TripDetails = () => {
               API TAB CONTENT
           ============================================= */}
 
-          {apiTabs.map(
-            (tab) =>
-              activeTab === tab.id && (
-                <div key={tab.id}>
-                  <h2 className="text-3xl font-bold text-[#111]">
-                    {tab.label}
-                  </h2>
-                   {console.log("Tab content items:", tab.content.map(c => c.type))}
+          <section className="pt-12">
+            <div className="mx-auto max-w-[1193px] space-y-6 overflow-x-auto px-4 pt-6">
+              {apiTabs.map(
+                (tab) =>
+                  activeTab === tab.id && (
+                    <div key={tab.id}>
+                      <h2 className="mx-auto mt-5 max-w-[1193px] px-4 text-[32px] font-semibold capitalize text-black">
+                        {tab.label}
+                      </h2>
 
-                  <div className="mt-8 space-y-8">
-                    {tab.content.map(
-                      (item, index) => (
-                        <div
-                          key={`${tab.id}-${index}`}
-                        >
-                          <ApiContent
-                            type={item.type}
-                            value={item.value}
-                          />
-                        </div>
-                      )
-                    )}
-                  </div>
-                </div>
-              )
-          )}
+                      <div className="mt-8 space-y-8">
+                        {tab.content.map((item, index) => (
+                          <div key={`${tab.id}-${index}`}>
+                            <ApiContent type={item.type} value={item.value} />
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )
+              )}
+
+
+            </div>
+          </section>
           {/* 👇 add this, always visible regardless of active tab */}
-<div className="mt-14">
-  <TermsAndConditions />
-</div>
+          <div className="mt-14">
+            <TermsAndConditions />
+          </div>
         </div>
       </section>
 
